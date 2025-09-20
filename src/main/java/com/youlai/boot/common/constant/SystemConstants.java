@@ -14,6 +14,11 @@ public interface SystemConstants {
     Long ROOT_NODE_ID = 0L;
 
     /**
+     * 根节点ID
+     */
+    Long DRILL_NODE_ID = -1L;
+
+    /**
      * 系统默认密码
      */
     String DEFAULT_PASSWORD = "123456";

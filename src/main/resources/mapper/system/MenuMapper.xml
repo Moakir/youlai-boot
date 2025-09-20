@@ -27,6 +27,8 @@
                 INNER JOIN sys_role t3 ON t2.role_id = t3.id AND t3.status = 1 AND t3.is_deleted = 0
         WHERE
             t1.type != '${@com.youlai.boot.system.enums.MenuTypeEnum@BUTTON.getValue()}'
+            OR
+            (t1.type = '${@com.youlai.boot.system.enums.MenuTypeEnum@BUTTON.getValue()}' and t1.route_name is not null)
             <choose>
                 <when test="roleCodes != null and roleCodes.size() > 0">
                     AND t3.code IN

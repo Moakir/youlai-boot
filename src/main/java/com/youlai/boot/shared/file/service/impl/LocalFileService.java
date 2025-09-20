@@ -49,7 +49,7 @@ public class LocalFileService implements FileService {
         // 获取文件后缀
         String suffix = FileUtil.getSuffix(originalFilename);
         // 生成uuid
-        String fileName = IdUtil.simpleUUID()+ "." + suffix;;
+        String fileName = IdUtil.simpleUUID()+ "." + suffix;
         // 生成文件名(日期文件夹)
         String folder = DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATE_PATTERN);
         String filePrefix = storagePath.endsWith(File.separator) ? storagePath : storagePath + File.separator;

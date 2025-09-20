@@ -63,4 +63,7 @@ public class MenuForm {
     @Schema(description = "路由参数")
     private List<KeyValue> params;
 
+    @Schema(description = "按钮子类型（normal-普通按钮，drill-下钻页面）")
+    private String buttonSubType;
+
 }

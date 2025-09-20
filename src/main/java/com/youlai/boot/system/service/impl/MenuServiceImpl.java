@@ -2,6 +2,7 @@ package com.youlai.boot.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -10,20 +11,20 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.youlai.boot.common.constant.SystemConstants;
+import com.youlai.boot.common.enums.StatusEnum;
+import com.youlai.boot.common.model.KeyValue;
+import com.youlai.boot.common.model.Option;
 import com.youlai.boot.core.security.util.SecurityUtils;
-import com.youlai.boot.system.converter.MenuConverter;
-import com.youlai.boot.system.mapper.MenuMapper;
 import com.youlai.boot.shared.codegen.model.entity.GenConfig;
+import com.youlai.boot.system.converter.MenuConverter;
+import com.youlai.boot.system.enums.MenuTypeEnum;
+import com.youlai.boot.system.mapper.MenuMapper;
 import com.youlai.boot.system.model.entity.Menu;
 import com.youlai.boot.system.model.form.MenuForm;
 import com.youlai.boot.system.model.query.MenuQuery;
 import com.youlai.boot.system.model.vo.MenuVO;
 import com.youlai.boot.system.model.vo.RouteVO;
-import com.youlai.boot.common.constant.SystemConstants;
-import com.youlai.boot.system.enums.MenuTypeEnum;
-import com.youlai.boot.common.enums.StatusEnum;
-import com.youlai.boot.common.model.KeyValue;
-import com.youlai.boot.common.model.Option;
 import com.youlai.boot.system.service.MenuService;
 import com.youlai.boot.system.service.RoleMenuService;
 import lombok.RequiredArgsConstructor;
@@ -159,6 +160,26 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         } else {
             menuList = this.baseMapper.getMenusByRoleCodes(roleCodes);
         }
+        Menu drillDownMenu = new Menu();
+        drillDownMenu.setId(SystemConstants.DRILL_NODE_ID);
+        drillDownMenu.setParentId(SystemConstants.ROOT_NODE_ID);
+        drillDownMenu.setTreePath(String.valueOf(SystemConstants.ROOT_NODE_ID + CharPool.COMMA + SystemConstants.DRILL_NODE_ID));
+        drillDownMenu.setName("下钻页面统一父级菜单");
+        drillDownMenu.setType(MenuTypeEnum.CATALOG.getValue());
+        drillDownMenu.setRouteName("/drill");
+        drillDownMenu.setRoutePath("/drill");
+        drillDownMenu.setComponent("Layout");
+        drillDownMenu.setVisible(0);
+        drillDownMenu.setKeepAlive(0);
+        drillDownMenu.setAlwaysShow(0);
+        drillDownMenu.setSort(Integer.MAX_VALUE);
+        menuList.add(drillDownMenu);
+
+        menuList.forEach(menu -> {
+            if (MenuTypeEnum.isDrillDownButton(menu)) {
+                menu.setParentId(SystemConstants.DRILL_NODE_ID);
+            }
+        });
         return buildRoutes(SystemConstants.ROOT_NODE_ID, menuList);
     }
 
@@ -267,7 +288,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
             entity.setParams(null);
         }
         // 新增类型为菜单时候 路由名称唯一
-        if (MenuTypeEnum.MENU.getValue().equals(menuType)) {
+        if (MenuTypeEnum.MENU.getValue().equals(menuType) || MenuTypeEnum.isDrillDownButton(entity)) {
             Assert.isFalse(this.exists(new LambdaQueryWrapper<Menu>()
                     .eq(Menu::getRouteName, entity.getRouteName())
                     .ne(menuForm.getId() != null, Menu::getId, menuForm.getId())
@@ -354,6 +375,10 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         Menu entity = this.getById(id);
         Assert.isTrue(entity != null, "菜单不存在");
         MenuForm formData = menuConverter.toForm(entity);
+
+        // 按钮子类型判断
+        formData.setButtonSubType(MenuTypeEnum.getButtonSubType(entity).getValue());
+
         // 路由参数字符串 {"id":"1","name":"张三"} 转换为 [{key:"id", value:"1"}, {key:"name", value:"张三"}]
         String params = entity.getParams();
         if (StrUtil.isNotBlank(params)) {
