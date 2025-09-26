@@ -166,13 +166,14 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         drillDownMenu.setTreePath(String.valueOf(SystemConstants.ROOT_NODE_ID + CharPool.COMMA + SystemConstants.DRILL_NODE_ID));
         drillDownMenu.setName("下钻页面统一父级菜单");
         drillDownMenu.setType(MenuTypeEnum.CATALOG.getValue());
-        drillDownMenu.setRouteName("/drill");
+        drillDownMenu.setRouteName("");
         drillDownMenu.setRoutePath("/drill");
         drillDownMenu.setComponent("Layout");
         drillDownMenu.setVisible(0);
         drillDownMenu.setKeepAlive(0);
         drillDownMenu.setAlwaysShow(0);
         drillDownMenu.setSort(Integer.MAX_VALUE);
+        drillDownMenu.setParams(JSONUtil.createObj().set("meta_breadcrumb", "false").toString());
         menuList.add(drillDownMenu);
 
         menuList.forEach(menu -> {
