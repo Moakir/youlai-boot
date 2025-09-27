@@ -16,6 +16,7 @@ import com.youlai.boot.core.security.model.UserAuthCredentials;
 import com.youlai.boot.core.security.service.PermissionService;
 import com.youlai.boot.core.security.token.TokenManager;
 import com.youlai.boot.core.security.util.SecurityUtils;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import com.youlai.boot.shared.mail.service.MailService;
 import com.youlai.boot.shared.sms.enums.SmsTypeEnum;
 import com.youlai.boot.shared.sms.service.SmsService;
@@ -35,7 +36,6 @@ import com.youlai.boot.system.model.vo.UserProfileVO;
 import com.youlai.boot.system.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final MailService mailService;
 
-    private final StringRedisTemplate redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
     private final TokenManager tokenManager;
 
@@ -563,7 +563,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (result) {
             // 缓存验证码，5分钟有效，用于更换手机号校验
             String redisCacheKey = StrUtil.format(RedisConstants.Captcha.MOBILE_CODE, mobile);
-            redisTemplate.opsForValue().set(redisCacheKey, code, 5, TimeUnit.MINUTES);
+            cacheAdapter.set(redisCacheKey, code, 5, TimeUnit.MINUTES);
         }
         return result;
     }
@@ -590,7 +590,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         String cacheKey = StrUtil.format(RedisConstants.Captcha.MOBILE_CODE, mobile);
 
-        String cachedVerifyCode = redisTemplate.opsForValue().get(cacheKey);
+        String cachedVerifyCode = cacheAdapter.get(cacheKey);
 
         if (StrUtil.isBlank(cachedVerifyCode)) {
             throw new BusinessException("验证码已过期");
@@ -599,7 +599,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("验证码错误");
         }
         // 验证完成删除验证码
-        redisTemplate.delete(cacheKey);
+        cacheAdapter.delete(cacheKey);
 
         // 更新手机号码
         return this.update(
@@ -624,7 +624,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         mailService.sendMail(email, "邮箱验证码", "您的验证码为：" + code + "，请在5分钟内使用");
         // 缓存验证码，5分钟有效，用于更换邮箱校验
         String redisCacheKey = StrUtil.format(RedisConstants.Captcha.EMAIL_CODE, email);
-        redisTemplate.opsForValue().set(redisCacheKey, code, 5, TimeUnit.MINUTES);
+        cacheAdapter.set(redisCacheKey, code, 5, TimeUnit.MINUTES);
     }
 
     /**
@@ -649,7 +649,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 获取缓存的验证码
         String email = form.getEmail();
         String redisCacheKey = RedisConstants.Captcha.EMAIL_CODE + email;
-        String cachedVerifyCode = redisTemplate.opsForValue().get(redisCacheKey);
+        String cachedVerifyCode = cacheAdapter.get(redisCacheKey);
 
         if (StrUtil.isBlank(cachedVerifyCode)) {
             throw new BusinessException("验证码已过期");
@@ -659,7 +659,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("验证码错误");
         }
         // 验证完成删除验证码
-        redisTemplate.delete(redisCacheKey);
+        cacheAdapter.delete(redisCacheKey);
 
         // 更新邮箱地址
         return this.update(
