@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 缓存适配器，提供统一的缓存访问方法
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 @Component
 public class CacheAdapter {

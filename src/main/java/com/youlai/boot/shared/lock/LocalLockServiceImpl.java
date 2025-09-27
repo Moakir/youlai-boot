@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 注意：本实现适用于单机防重复提交场景。
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 @Slf4j
 @Service

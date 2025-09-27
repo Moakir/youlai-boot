@@ -5,8 +5,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 统一锁服务接口
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 public interface ILockService {
 

@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * 缓存封装对象
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 public class CacheValue<K, V> implements Serializable {
     @Serial

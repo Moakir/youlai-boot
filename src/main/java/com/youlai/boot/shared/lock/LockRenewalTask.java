@@ -11,8 +11,8 @@ import java.time.temporal.ChronoUnit;
  * <p>
  * 负责自动续约锁的过期时间，防止长时间运行的任务被意外中断
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 @Slf4j
 public class LockRenewalTask implements Runnable {

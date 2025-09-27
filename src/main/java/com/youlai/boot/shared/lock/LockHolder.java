@@ -7,8 +7,8 @@ import java.util.UUID;
  * <p>
  * 用于生成和管理锁持有者标识，格式为 uuid:threadId
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 public class LockHolder {
     

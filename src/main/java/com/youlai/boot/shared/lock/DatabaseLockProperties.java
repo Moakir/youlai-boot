@@ -8,8 +8,8 @@ import java.time.Duration;
 /**
  * 数据库锁配置属性
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 @Data
 @ConfigurationProperties(prefix = "lock.database")

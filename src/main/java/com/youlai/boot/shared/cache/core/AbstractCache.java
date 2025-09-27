@@ -10,8 +10,8 @@ import java.util.function.Function;
 /**
  * 一个通用的缓存抽象委托类
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 abstract class AbstractCache<K, V> implements Cache<K, V> {
 

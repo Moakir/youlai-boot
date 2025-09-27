@@ -12,8 +12,8 @@ import java.util.function.Function;
  * 按键同步执行的工具类
  * 用于保证同一个键的操作串行执行，不同键的操作并行执行
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  **/
 @Slf4j
 public class SynchronizedByKey {

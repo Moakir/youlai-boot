@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 /**
  * 自管理的 Caffeine 缓存，非常大且不过期，仅内部使用，需要自行管理其生命周期
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 public class CaffeineCache extends AbstractCache<Object, Object> {
 

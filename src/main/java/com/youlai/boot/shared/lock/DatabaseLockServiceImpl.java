@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit;
  * 支持可重入锁、自动续约机制和精确的锁释放
  * 适用于没有Redis但需要分布式锁的场景
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 @Slf4j
 @Service

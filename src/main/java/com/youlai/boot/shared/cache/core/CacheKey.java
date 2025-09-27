@@ -9,8 +9,8 @@ import java.io.Serializable;
 /**
  * 缓存键封装对象
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 @Setter
 @Getter

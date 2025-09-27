@@ -6,8 +6,8 @@ import java.util.function.Function;
 /**
  * 通用缓存容器接口
  *
- * @author hjz
- * @since 2025/3/11
+ * @author hejz
+ * @since 2025/9/27
  */
 interface Cache<K, V> extends Serializable {
 
