@@ -16,8 +16,8 @@ import com.youlai.boot.common.result.ResultCode;
 import com.youlai.boot.config.property.SecurityProperties;
 import com.youlai.boot.core.security.model.AuthenticationToken;
 import com.youlai.boot.core.security.model.SysUserDetails;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -44,12 +44,12 @@ import java.util.stream.Collectors;
 public class JwtTokenManager implements TokenManager {
 
     private final SecurityProperties securityProperties;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
     private final byte[] secretKey;
 
-    public JwtTokenManager(SecurityProperties securityProperties, RedisTemplate<String, Object> redisTemplate) {
+    public JwtTokenManager(SecurityProperties securityProperties, CacheAdapter cacheAdapter) {
         this.securityProperties = securityProperties;
-        this.redisTemplate = redisTemplate;
+        this.cacheAdapter = cacheAdapter;
         this.secretKey = securityProperties.getSession().getJwt().getSecretKey().getBytes();
     }
 
@@ -148,7 +148,7 @@ public class JwtTokenManager implements TokenManager {
                     }
                 }
                 // 判断是否在黑名单中，如果在，则返回 false 标识Token无效
-                if (Boolean.TRUE.equals(redisTemplate.hasKey(StrUtil.format(RedisConstants.Auth.BLACKLIST_TOKEN, jti)))) {
+                if (Boolean.TRUE.equals(cacheAdapter.hasKey(StrUtil.format(RedisConstants.Auth.BLACKLIST_TOKEN, jti)))) {
                     return false;
                 }
             }
@@ -183,10 +183,10 @@ public class JwtTokenManager implements TokenManager {
             }
             // 计算Token剩余时间，将其加入黑名单
             int expirationIn = expirationAt - currentTimeSeconds;
-            redisTemplate.opsForValue().set(blacklistTokenKey, null, expirationIn, TimeUnit.SECONDS);
+            cacheAdapter.set(blacklistTokenKey, null, expirationIn, TimeUnit.SECONDS);
         } else {
             // 永不过期的Token永久加入黑名单
-            redisTemplate.opsForValue().set(blacklistTokenKey, null);
+            cacheAdapter.set(blacklistTokenKey, null);
         }
         ;
     }

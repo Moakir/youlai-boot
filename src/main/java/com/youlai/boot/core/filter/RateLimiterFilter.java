@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RateLimiterFilter extends OncePerRequestFilter {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
     private final ConfigService configService;
 
     private static final long DEFAULT_IP_LIMIT = 10L; // 默认 IP 限流阈值
 
-    public RateLimiterFilter(RedisTemplate<String, Object> redisTemplate, ConfigService configService) {
-        this.redisTemplate = redisTemplate;
+    public RateLimiterFilter(CacheAdapter cacheAdapter, ConfigService configService) {
+        this.cacheAdapter = cacheAdapter;
         this.configService = configService;
     }
 
@@ -52,10 +52,10 @@ public class RateLimiterFilter extends OncePerRequestFilter {
         String key = StrUtil.format(RedisConstants.RateLimiter.IP, ip);
 
         // 自增请求计数
-        Long count = redisTemplate.opsForValue().increment(key);
+        Long count = cacheAdapter.increment(key);
         if (count == null || count == 1) {
             // 第一次访问时设置过期时间为 1 秒
-            redisTemplate.expire(key, 1, TimeUnit.SECONDS);
+            cacheAdapter.expire(key, 1, TimeUnit.SECONDS);
         }
 
         // 获取系统配置的限流阈值

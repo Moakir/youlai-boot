@@ -10,8 +10,8 @@ import com.youlai.boot.config.property.SecurityProperties;
 import com.youlai.boot.core.security.model.AuthenticationToken;
 import com.youlai.boot.core.security.model.OnlineUser;
 import com.youlai.boot.core.security.model.SysUserDetails;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,14 +32,14 @@ import java.util.stream.Collectors;
  */
 @ConditionalOnProperty(value = "security.session.type", havingValue = "redis-token")
 @Service
-public class RedisTokenManager implements TokenManager {
+public class CacheTokenManager implements TokenManager {
 
     private final SecurityProperties securityProperties;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
-    public RedisTokenManager(SecurityProperties securityProperties, RedisTemplate<String, Object> redisTemplate) {
+    public CacheTokenManager(SecurityProperties securityProperties, CacheAdapter cacheAdapter) {
         this.securityProperties = securityProperties;
-        this.redisTemplate = redisTemplate;
+        this.cacheAdapter = cacheAdapter;
     }
 
     /**
@@ -86,7 +86,7 @@ public class RedisTokenManager implements TokenManager {
      */
     @Override
     public Authentication parseToken(String token) {
-        OnlineUser onlineUser = (OnlineUser) redisTemplate.opsForValue().get(formatTokenKey(token));
+        OnlineUser onlineUser = (OnlineUser) cacheAdapter.getObject(formatTokenKey(token));
         if (onlineUser == null) return null;
 
         // 构建用户权限集合
@@ -112,7 +112,7 @@ public class RedisTokenManager implements TokenManager {
      */
     @Override
     public boolean validateToken(String token) {
-        return redisTemplate.hasKey(formatTokenKey(token));
+        return cacheAdapter.hasKey(formatTokenKey(token));
     }
 
     /**
@@ -123,7 +123,7 @@ public class RedisTokenManager implements TokenManager {
      */
     @Override
     public boolean validateRefreshToken(String refreshToken) {
-        return redisTemplate.hasKey(formatRefreshTokenKey(refreshToken));
+        return cacheAdapter.hasKey(formatRefreshTokenKey(refreshToken));
     }
 
     /**
@@ -134,16 +134,16 @@ public class RedisTokenManager implements TokenManager {
      */
     @Override
     public AuthenticationToken refreshToken(String refreshToken) {
-        OnlineUser onlineUser = (OnlineUser) redisTemplate.opsForValue().get(StrUtil.format(RedisConstants.Auth.REFRESH_TOKEN_USER, refreshToken));
+        OnlineUser onlineUser = (OnlineUser) cacheAdapter.getObject(StrUtil.format(RedisConstants.Auth.REFRESH_TOKEN_USER, refreshToken));
         if (onlineUser == null) {
             throw new BusinessException(ResultCode.REFRESH_TOKEN_INVALID);
         }
 
-        String oldAccessToken = (String) redisTemplate.opsForValue().get(StrUtil.format(RedisConstants.Auth.USER_ACCESS_TOKEN, onlineUser.getUserId()));
+        String oldAccessToken = (String) cacheAdapter.getObject(StrUtil.format(RedisConstants.Auth.USER_ACCESS_TOKEN, onlineUser.getUserId()));
 
         // 删除旧的访问令牌记录
         if (oldAccessToken != null) {
-            redisTemplate.delete(formatTokenKey(oldAccessToken));
+            cacheAdapter.delete(formatTokenKey(oldAccessToken));
         }
 
         // 生成新访问令牌并存储
@@ -165,23 +165,23 @@ public class RedisTokenManager implements TokenManager {
      */
     @Override
     public void invalidateToken(String token) {
-        OnlineUser onlineUser = (OnlineUser) redisTemplate.opsForValue().get(formatTokenKey(token));
+        OnlineUser onlineUser = (OnlineUser) cacheAdapter.getObject(formatTokenKey(token));
         if (onlineUser != null) {
             Long userId = onlineUser.getUserId();
             // 1. 删除访问令牌相关
             String userAccessKey = StrUtil.format(RedisConstants.Auth.USER_ACCESS_TOKEN, userId);
-            String accessToken = (String) redisTemplate.opsForValue().get(userAccessKey);
+            String accessToken = (String) cacheAdapter.getObject(userAccessKey);
             if (accessToken != null) {
-                redisTemplate.delete(formatTokenKey(accessToken));
-                redisTemplate.delete(userAccessKey);
+                cacheAdapter.delete(formatTokenKey(accessToken));
+                cacheAdapter.delete(userAccessKey);
             }
 
             // 2. 删除刷新令牌相关
             String userRefreshKey = StrUtil.format(RedisConstants.Auth.USER_REFRESH_TOKEN, userId);
-            String refreshToken = (String) redisTemplate.opsForValue().get(userRefreshKey);
+            String refreshToken = (String) cacheAdapter.getObject(userRefreshKey);
             if (refreshToken != null) {
-                redisTemplate.delete(StrUtil.format(RedisConstants.Auth.REFRESH_TOKEN_USER, refreshToken));
-                redisTemplate.delete(userRefreshKey);
+                cacheAdapter.delete(StrUtil.format(RedisConstants.Auth.REFRESH_TOKEN_USER, refreshToken));
+                cacheAdapter.delete(userRefreshKey);
             }
         }
     }
@@ -218,9 +218,9 @@ public class RedisTokenManager implements TokenManager {
         String userAccessKey = StrUtil.format(RedisConstants.Auth.USER_ACCESS_TOKEN, userId);
         // 单设备登录控制，删除旧的访问令牌
         if (!allowMultiLogin) {
-            String oldAccessToken = (String) redisTemplate.opsForValue().get(userAccessKey);
+            String oldAccessToken = (String) cacheAdapter.getObject(userAccessKey);
             if (oldAccessToken != null) {
-                redisTemplate.delete(formatTokenKey(oldAccessToken));
+                cacheAdapter.delete(formatTokenKey(oldAccessToken));
             }
         }
         // 存储访问令牌映射（用户ID -> 访问令牌），用于单设备登录控制删除旧的访问令牌和刷新令牌时删除旧令牌
@@ -285,9 +285,9 @@ public class RedisTokenManager implements TokenManager {
      */
     private void setRedisValue(String key, Object value, int ttl) {
         if (ttl != -1) {
-            redisTemplate.opsForValue().set(key, value, ttl, TimeUnit.SECONDS);
+            cacheAdapter.setObject(key, value, ttl, TimeUnit.SECONDS);
         } else {
-            redisTemplate.opsForValue().set(key, value); // ttl=-1时永不过期
+            cacheAdapter.setObject(key, value); // ttl=-1时永不过期
         }
     }
 }

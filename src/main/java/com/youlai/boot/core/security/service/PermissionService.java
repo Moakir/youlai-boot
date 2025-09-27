@@ -6,7 +6,7 @@ import com.youlai.boot.common.constant.RedisConstants;
 import com.youlai.boot.core.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.PatternMatchUtils;
 
@@ -23,7 +23,7 @@ import java.util.*;
 @Slf4j
 public class PermissionService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
     /**
      * 判断当前登录用户是否拥有操作权限
@@ -81,7 +81,7 @@ public class PermissionService {
         Set<String> perms = new HashSet<>();
         // 从缓存中一次性获取所有角色的权限
         Collection<Object> roleCodesAsObjects = new ArrayList<>(roleCodes);
-        List<Object> rolePermsList = redisTemplate.opsForHash().multiGet(RedisConstants.System.ROLE_PERMS, roleCodesAsObjects);
+        List<Object> rolePermsList = cacheAdapter.hashMultiGet(RedisConstants.System.ROLE_PERMS, roleCodesAsObjects);
 
         for (Object rolePermsObj : rolePermsList) {
             if (rolePermsObj instanceof Set) {

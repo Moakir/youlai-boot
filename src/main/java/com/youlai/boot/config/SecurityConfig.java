@@ -19,7 +19,7 @@ import com.youlai.boot.system.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -46,7 +46,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
     private final PasswordEncoder passwordEncoder;
 
     private final TokenManager tokenManager;
@@ -91,9 +91,9 @@ public class SecurityConfig {
                 // 禁用 X-Frame-Options 响应头，允许页面被嵌套到 iframe 中
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 // 限流过滤器
-                .addFilterBefore(new RateLimiterFilter(redisTemplate, configService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new RateLimiterFilter(cacheAdapter, configService), UsernamePasswordAuthenticationFilter.class)
                 // 验证码校验过滤器
-                .addFilterBefore(new CaptchaValidationFilter(redisTemplate, codeGenerator), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CaptchaValidationFilter(cacheAdapter, codeGenerator), UsernamePasswordAuthenticationFilter.class)
                 // 验证和解析过滤器
                 .addFilterBefore(new TokenAuthenticationFilter(tokenManager), UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -146,7 +146,7 @@ public class SecurityConfig {
      */
     @Bean
     public SmsAuthenticationProvider smsAuthenticationProvider() {
-        return new SmsAuthenticationProvider(userService, redisTemplate);
+        return new SmsAuthenticationProvider(userService, cacheAdapter);
     }
 
     /**

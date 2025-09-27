@@ -10,7 +10,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -31,12 +31,12 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
     public static final String CAPTCHA_CODE_PARAM_NAME = "captchaCode";
     public static final String CAPTCHA_KEY_PARAM_NAME = "captchaKey";
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
     private final CodeGenerator codeGenerator;
 
-    public CaptchaValidationFilter(RedisTemplate<String, Object> redisTemplate, CodeGenerator codeGenerator) {
-        this.redisTemplate = redisTemplate;
+    public CaptchaValidationFilter(CacheAdapter cacheAdapter, CodeGenerator codeGenerator) {
+        this.cacheAdapter = cacheAdapter;
         this.codeGenerator = codeGenerator;
     }
 
@@ -54,7 +54,7 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
             }
             // 缓存中的验证码
             String verifyCodeKey = request.getParameter(CAPTCHA_KEY_PARAM_NAME);
-            String cacheVerifyCode = (String) redisTemplate.opsForValue().get(
+            String cacheVerifyCode = (String) cacheAdapter.get(
                     StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, verifyCodeKey)
             );
             if (cacheVerifyCode == null) {

@@ -23,7 +23,7 @@ import com.youlai.boot.shared.sms.enums.SmsTypeEnum;
 import com.youlai.boot.shared.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
     private final CodeGenerator codeGenerator;
 
     private final SmsService smsService;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
     /**
      * 用户名密码登录
@@ -122,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
             log.error("发送短信验证码失败", e);
         }
         // 缓存验证码至Redis，用于登录校验
-        redisTemplate.opsForValue().set(StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile), code, 5, TimeUnit.MINUTES);
+        cacheAdapter.set(StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile), code, 5, TimeUnit.MINUTES);
     }
 
     /**
@@ -197,7 +197,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 验证码文本缓存至Redis，用于登录校验
         String captchaKey = IdUtil.fastSimpleUUID();
-        redisTemplate.opsForValue().set(
+        cacheAdapter.set(
                 StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, captchaKey),
                 captchaCode,
                 captchaProperties.getExpireSeconds(),

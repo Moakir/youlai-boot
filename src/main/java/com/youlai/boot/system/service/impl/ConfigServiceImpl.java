@@ -17,7 +17,7 @@ import com.youlai.boot.core.security.util.SecurityUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -37,7 +37,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
 
     private final ConfigConverter configConverter;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
     /**
      * 系统启动完成后，加载系统配置到缓存
@@ -138,11 +138,11 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
      */
     @Override
     public boolean refreshCache() {
-        redisTemplate.delete(RedisConstants.System.CONFIG);
+        cacheAdapter.delete(RedisConstants.System.CONFIG);
         List<Config> list = this.list();
         if (list != null) {
             Map<String, String> map = list.stream().collect(Collectors.toMap(Config::getConfigKey, Config::getConfigValue));
-            redisTemplate.opsForHash().putAll(RedisConstants.System.CONFIG, map);
+            cacheAdapter.hashPutAllString(RedisConstants.System.CONFIG, map);
             return true;
         }
         return false;
@@ -157,7 +157,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
     @Override
     public Object getSystemConfig(String key) {
         if (StringUtils.isNotBlank(key)) {
-            return redisTemplate.opsForHash().get(RedisConstants.System.CONFIG, key);
+            return cacheAdapter.hashGet(RedisConstants.System.CONFIG, key);
         }
         return null;
     }

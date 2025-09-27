@@ -8,7 +8,7 @@ import com.youlai.boot.core.security.model.SysUserDetails;
 import com.youlai.boot.core.security.model.UserAuthCredentials;
 import com.youlai.boot.system.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.youlai.boot.shared.cache.CacheAdapter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
@@ -27,12 +27,12 @@ public class SmsAuthenticationProvider implements AuthenticationProvider {
 
     private final UserService userService;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheAdapter cacheAdapter;
 
 
-    public SmsAuthenticationProvider(UserService userService, RedisTemplate<String, Object> redisTemplate) {
+    public SmsAuthenticationProvider(UserService userService, CacheAdapter cacheAdapter) {
         this.userService = userService;
-        this.redisTemplate = redisTemplate;
+        this.cacheAdapter = cacheAdapter;
     }
 
     /**
@@ -62,13 +62,13 @@ public class SmsAuthenticationProvider implements AuthenticationProvider {
 
         // 校验发送短信验证码的手机号是否与当前登录用户一致
         String cacheKey = StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile);
-        String cachedVerifyCode = (String) redisTemplate.opsForValue().get(cacheKey);
+        String cachedVerifyCode = (String) cacheAdapter.get(cacheKey);
 
         if (!StrUtil.equals(inputVerifyCode, cachedVerifyCode)) {
             throw new CaptchaValidationException("验证码错误");
         } else {
             // 验证成功后删除验证码
-            redisTemplate.delete(cacheKey);
+            cacheAdapter.delete(cacheKey);
         }
 
         // 构建认证后的用户详情信息
