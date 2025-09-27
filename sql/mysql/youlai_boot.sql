@@ -564,4 +564,18 @@ INSERT INTO `sys_user_notice` VALUES (8, 8, 2, 1, NULL, now(), now(), 0);
 INSERT INTO `sys_user_notice` VALUES (9, 9, 2, 1, NULL, now(), now(), 0);
 INSERT INTO `sys_user_notice` VALUES (10, 10, 2, 1, NULL, now(), now(), 0);
 
+-- ----------------------------
+-- Table structure for database_lock
+-- ----------------------------
+DROP TABLE IF EXISTS `database_lock`;
+CREATE TABLE `database_lock` (
+  `resource_id` varchar(64) NOT NULL COMMENT '锁定的资源标识',
+  `holder` varchar(64) NOT NULL COMMENT '资源的持有者标识',
+  `lock_count` int(11) NOT NULL DEFAULT 1 COMMENT '锁定的次数，可重复获取锁后会累加，到0会释放锁',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `expire_time` datetime NOT NULL COMMENT '过期时间',
+  `description` varchar(256) DEFAULT '' COMMENT '描述',
+  PRIMARY KEY `uiq_idx_resource` (`resource_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据库分布式锁表';
+
 SET FOREIGN_KEY_CHECKS = 1;

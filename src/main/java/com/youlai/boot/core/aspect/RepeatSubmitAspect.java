@@ -8,6 +8,7 @@ import com.youlai.boot.common.result.ResultCode;
 import com.youlai.boot.common.exception.BusinessException;
 import com.youlai.boot.common.annotation.RepeatSubmit;
 import com.youlai.boot.common.util.IPUtils;
+import com.youlai.boot.shared.lock.LockAdapter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +16,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -36,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RepeatSubmitAspect {
 
-    private final RedissonClient redissonClient;
+    private final LockAdapter lockAdapter;
 
     /**
      * 防重复提交切点
@@ -51,15 +50,19 @@ public class RepeatSubmitAspect {
     @Around(value = "repeatSubmitPointCut(repeatSubmit)", argNames = "pjp,repeatSubmit")
     public Object handleRepeatSubmit(ProceedingJoinPoint pjp, RepeatSubmit repeatSubmit) throws Throwable {
         String lockKey = buildLockKey();
-
         int expire = repeatSubmit.expire();
-        RLock lock = redissonClient.getLock(lockKey);
 
-        boolean locked = lock.tryLock(0, expire, TimeUnit.SECONDS);
+        boolean locked = lockAdapter.tryLock(lockKey, expire, TimeUnit.SECONDS);
         if (!locked) {
             throw new BusinessException(ResultCode.USER_DUPLICATE_REQUEST);
         }
-        return pjp.proceed();
+        
+        try {
+            return pjp.proceed();
+        } finally {
+            // 注意：这里不主动释放锁，让锁自然过期
+            // 如果需要立即释放锁，可以调用 lockAdapter.unlock(lockKey);
+        }
     }
 
     /**
