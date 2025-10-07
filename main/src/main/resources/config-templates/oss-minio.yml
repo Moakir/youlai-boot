@@ -1,0 +1,11 @@
+# MinIO 文件存储配置模板
+# 使用方法：将此配置复制到 application-{profile}.yml 中
+
+oss:
+  type: minio
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket-name: youlai
+    custom-domain:  # 可选：自定义域名

@@ -1,0 +1,228 @@
+# ===========================================
+# 最全配置 - 包含所有功能模块的完整配置
+# 使用方法：根据需要从此配置中复制需要的部分到实际使用的配置文件中
+# ===========================================
+
+server:
+  port: 8989
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/youlai_boot?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true&allowMultiQueries=true
+    username: root
+    password: root
+  
+  # ===========================================
+  # Redis 配置 (可选 - 用于缓存、会话、分布式锁)
+  # ===========================================
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379
+      password:  # 如果Redis未设置密码，留空
+      timeout: 10s
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+  
+  # ===========================================
+  # 缓存配置
+  # ===========================================
+  cache:
+    enabled: true
+    type: caffeine  # 可选值: redis, caffeine, none
+    redis:
+      time-to-live: 3600000  # 1小时
+      cache-null-values: true
+    caffeine:
+      spec: initialCapacity=50,maximumSize=1000,expireAfterWrite=600s
+  
+  # ===========================================
+  # 邮件服务配置 (可选)
+  # ===========================================
+  mail:
+    host: smtp.example.com
+    port: 587
+    username: your-email@example.com
+    password: your-email-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    from: your-email@example.com
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: none
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ===========================================
+# 安全配置
+# ===========================================
+security:
+  session:
+    type: jwt  # 可选值: jwt, redis-token
+    access-token-time-to-live: 7200
+    refresh-token-time-to-live: 604800
+    jwt:
+      secret-key: SecretKey012345678901234567890123456789012345678901234567890123456789
+    redis-token:
+      allow-multi-login: true
+  ignore-urls:
+    - /api/v1/auth/login/**
+    - /api/v1/auth/captcha
+    - /api/v1/auth/refresh-token
+    - /api/v1/auth/logout
+    - /ws/**
+  unsecured-urls:
+    - ${springdoc.swagger-ui.path}
+    - /doc.html
+    - /swagger-ui/**
+    - /v3/api-docs/**
+    - /webjars/**
+    - /favicon.ico
+
+# ===========================================
+# 文件存储配置 (OSS)
+# ===========================================
+oss:
+  type: local  # 可选值: local, minio, aliyun
+  
+  # 本地存储配置
+  local:
+    storage-path: ./uploads/
+  
+  # MinIO 对象存储配置
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket-name: youlai
+    custom-domain:  # 可选：自定义域名
+  
+  # 阿里云OSS配置
+  aliyun:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    access-key-id: your-access-key-id
+    access-key-secret: your-access-key-secret
+    bucket-name: your-bucket-name
+
+# ===========================================
+# 短信服务配置 (可选)
+# ===========================================
+sms:
+  aliyun:
+    accessKeyId: your-access-key-id
+    accessKeySecret: your-access-key-secret
+    domain: dysmsapi.aliyuncs.com
+    regionId: cn-shanghai
+    signName: 您的签名
+    templates:
+      register: SMS_xxxxx  # 注册短信验证码模板
+      login: SMS_xxxxx     # 登录短信验证码模板
+      change-mobile: SMS_xxxxx  # 修改手机号短信验证码模板
+
+# ===========================================
+# 分布式锁配置
+# ===========================================
+lock:
+  type: local  # 可选值: local, redis, database
+  
+  # 本地锁配置
+  local:
+    max-size: 10000
+  
+  # Redis锁配置
+  redis:
+    # 使用 spring.data.redis 配置
+  
+  # 数据库锁配置
+  database:
+    table-name: database_lock
+    default-expire-time: 30s
+    renewal-interval: 10s
+    cleanup-interval: 60s
+
+# ===========================================
+# 定时任务配置 (可选)
+# ===========================================
+xxl:
+  job:
+    enabled: false  # 是否启用定时任务
+    admin:
+      addresses: http://127.0.0.1:8080/xxl-job-admin
+    accessToken: default_token
+    executor:
+      appname: xxl-job-executor-${spring.application.name}
+      address: 
+      ip: 
+      port: 9999
+      logpath: /data/applogs/xxl-job/jobhandler
+      logretentiondays: 30
+
+# ===========================================
+# 验证码配置
+# ===========================================
+captcha:
+  type: circle  # 可选值: circle, gif, line, shear
+  width: 120
+  height: 40
+  interfere-count: 2
+  text-alpha: 0.8
+  code:
+    type: math  # 可选值: math, random
+    length: 1
+  font:
+    name: SansSerif
+    weight: 1
+    size: 24
+  expire-seconds: 120
+
+# ===========================================
+# 微信小程序配置 (可选)
+# ===========================================
+wx:
+  miniapp:
+    app-id: your-miniapp-appid
+    app-secret: your-miniapp-secret
+
+# ===========================================
+# 接口文档配置
+# ===========================================
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: '系统管理'
+      paths-to-match: "/**"
+      packages-to-scan:
+        - com.youlai.boot.auth.controller
+        - com.youlai.boot.system.controller
+        - com.youlai.boot.shared.file.controller
+        - com.youlai.boot.shared.codegen.controller
+  default-flat-param-object: true
+
+knife4j:
+  enable: true
+  production: false  # 生产环境建议设置为 true
+  setting:
+    language: zh_cn

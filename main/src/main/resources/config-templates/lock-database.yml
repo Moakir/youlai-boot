@@ -1,0 +1,10 @@
+# 数据库分布式锁配置模板
+# 使用方法：将此配置复制到 application-{profile}.yml 中
+
+lock:
+  type: database
+  database:
+    table-name: database_lock
+    default-expire-time: 30s
+    renewal-interval: 10s
+    cleanup-interval: 60s

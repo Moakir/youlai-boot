@@ -1,0 +1,7 @@
+# 微信小程序配置模板
+# 使用方法：将此配置复制到 application-{profile}.yml 中
+
+wx:
+  miniapp:
+    app-id: your-miniapp-appid
+    app-secret: your-miniapp-secret

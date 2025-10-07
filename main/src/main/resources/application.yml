@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: youlai-boot
+  profiles:
+    active: dev  # 默认使用开发环境配置
+  config:
+    import: 
+      - optional:classpath:config-templates/codegen.yml  # 可选导入，仅在引入codegen模块时生效
+
+# 在 banner.txt 中显示项目版本，使用 @project.version@ 从 pom.xml 获取
+project:
+  version: @project.version@
+
+# ===========================================
+# 配置管理说明
+# ===========================================
+# 1. 默认使用 application-dev.yml (开发环境配置)
+# 2. 需要其他功能时，参考 application-complete.yml 复制对应配置
+# 3. 支持的环境配置：
+#    - dev: 开发环境配置 (默认)
+#    - prod: 生产环境配置
+#    - complete: 最全配置 (包含所有功能模块，仅作参考)
+# 4. 配置导入：通过 spring.config.import 在 dev/prod 中导入额外配置

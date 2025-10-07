@@ -1,0 +1,16 @@
+# Spring Mail 邮件服务配置模板
+# 使用方法：将此配置复制到 application-{profile}.yml 中
+
+spring:
+  mail:
+    host: smtp.example.com
+    port: 587
+    username: your-email@example.com
+    password: your-email-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    from: your-email@example.com

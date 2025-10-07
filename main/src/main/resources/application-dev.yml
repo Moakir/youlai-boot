@@ -1,0 +1,123 @@
+# ===========================================
+# 开发环境配置 - 最小配置 + 开发特有配置
+# 使用方法：参考 application-complete.yml 添加需要的功能配置
+# 配置导入：通过 spring.config.import 导入额外配置
+# ===========================================
+
+server:
+  port: 8989
+
+spring:
+  config:
+    import:
+      # 按需导入配置模板
+      # - optional:classpath:config-templates/codegen.yml
+      # - optional:classpath:config-templates/cache-redis.yml
+      # - optional:classpath:config-templates/oss-minio.yml
+      # - optional:classpath:config-templates/sms-aliyun.yml
+      # - optional:classpath:config-templates/mail-spring.yml
+      # - optional:classpath:config-templates/lock-redis.yml
+      # - optional:classpath:config-templates/job-xxl.yml
+      # - optional:classpath:config-templates/wx-miniapp.yml
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/youlai_boot?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true&allowMultiQueries=true
+    username: root
+    password: root
+  
+  cache:
+    enabled: true
+    type: caffeine
+    caffeine:
+      spec: initialCapacity=50,maximumSize=1000,expireAfterWrite=600s
+
+  # 开发环境日志配置
+  logging:
+    level:
+      com.youlai.boot: debug
+      org.springframework.security: debug
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: none
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 安全配置
+security:
+  session:
+    type: jwt
+    access-token-time-to-live: 7200
+    refresh-token-time-to-live: 604800
+    jwt:
+      secret-key: SecretKey012345678901234567890123456789012345678901234567890123456789
+  ignore-urls:
+    - /api/v1/auth/login/**
+    - /api/v1/auth/captcha
+    - /api/v1/auth/refresh-token
+    - /api/v1/auth/logout
+    - /ws/**
+  unsecured-urls:
+    - ${springdoc.swagger-ui.path}
+    - /doc.html
+    - /swagger-ui/**
+    - /v3/api-docs/**
+    - /webjars/**
+    - /favicon.ico
+
+# 文件存储配置 - 本地存储
+oss:
+  type: local
+  local:
+    storage-path: ./uploads/
+
+# 锁服务配置 - 本地锁
+lock:
+  type: local
+  local:
+    max-size: 10000
+
+# 验证码配置
+captcha:
+  type: circle
+  width: 120
+  height: 40
+  interfere-count: 2
+  text-alpha: 0.8
+  code:
+    type: math
+    length: 1
+  font:
+    name: SansSerif
+    weight: 1
+    size: 24
+  expire-seconds: 120
+
+# 接口文档配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: '系统管理'
+      paths-to-match: "/**"
+      packages-to-scan:
+        - com.youlai.boot.auth.controller
+        - com.youlai.boot.system.controller
+  default-flat-param-object: true
+
+knife4j:
+  enable: true
+  production: false
+  setting:
+    language: zh_cn

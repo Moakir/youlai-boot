@@ -1,0 +1,7 @@
+# Redis 分布式锁配置模板
+# 使用方法：将此配置复制到 application-{profile}.yml 中
+
+lock:
+  type: redis
+  redis:
+    # 使用 spring.data.redis 配置

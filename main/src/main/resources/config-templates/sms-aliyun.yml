@@ -1,0 +1,14 @@
+# 阿里云短信服务配置模板
+# 使用方法：将此配置复制到 application-{profile}.yml 中
+
+sms:
+  aliyun:
+    accessKeyId: your-access-key-id
+    accessKeySecret: your-access-key-secret
+    domain: dysmsapi.aliyuncs.com
+    regionId: cn-shanghai
+    signName: 您的签名
+    templates:
+      register: SMS_xxxxx  # 注册短信验证码模板
+      login: SMS_xxxxx     # 登录短信验证码模板
+      change-mobile: SMS_xxxxx  # 修改手机号短信验证码模板
