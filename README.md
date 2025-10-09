@@ -66,3 +66,11 @@ mvn spring-boot:run
 - [ ] 阶段2：外部依赖模块创建
 - [ ] 阶段3：配置和依赖管理
 - [ ] 阶段4：测试和验证
+
+## 待办事项
+
+- [ ] **代码生成优化**: codegen 模板可以从main中删除了
+- [ ] **邮件服务整合**: share-mail-spring 实现可以直接融合到main中
+- [ ] **定时任务重构**: xxljob 剥离，定时任务可以使用本地方式实现
+- [ ] **资源文件优化**: ipregion 也要剥离，资源文件太大了，需要的可以自己添加
+- [ ] **配置提示优化**: main\resources\META-INF\additional-spring-configuration-metadata.json 提示信息正确优化
